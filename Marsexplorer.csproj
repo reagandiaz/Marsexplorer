@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="bak\**" />
+    <Compile Remove="Test\**" />
+    <EmbeddedResource Remove="bak\**" />
+    <EmbeddedResource Remove="Test\**" />
+    <None Remove="bak\**" />
+    <None Remove="Test\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Resources\Area.cs" />
+    <Compile Remove="Resources\Cell.cs" />
+    <Compile Remove="Resources\Region.cs" />
+  </ItemGroup>
+
+</Project>
