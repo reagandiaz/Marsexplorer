@@ -7,23 +7,6 @@ namespace Marsexplorer.Test
     [TestClass]
     public class DirectionTest
     {
-        [TestMethod]
-        public void SimpleFill()
-        {
-            string dir = "archive";
-            string f1 = "SimpleFill";
-            int ex = 821;
-            Tool.Single(dir, f1, ex);
-        }
-
-        [TestMethod]
-        public void testinput()
-        {
-            string dir = "archive";
-            string f1 = "testinput";
-            int ex = 3128751;
-            Tool.Single(dir, f1, ex);
-        }
 
         [TestMethod]
         public void S1W10N1E20()
