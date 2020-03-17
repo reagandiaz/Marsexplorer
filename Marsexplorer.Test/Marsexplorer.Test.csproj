@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Marsexplorer\Marsexplorer.csproj" />
+    <ProjectReference Include="..\Marsexplorer.csproj" />
   </ItemGroup>
 
 </Project>
