@@ -7,10 +7,13 @@
 
   <ItemGroup>
     <Compile Remove="bak\**" />
+    <Compile Remove="Marsexplorer.Test\**" />
     <Compile Remove="Test\**" />
     <EmbeddedResource Remove="bak\**" />
+    <EmbeddedResource Remove="Marsexplorer.Test\**" />
     <EmbeddedResource Remove="Test\**" />
     <None Remove="bak\**" />
+    <None Remove="Marsexplorer.Test\**" />
     <None Remove="Test\**" />
   </ItemGroup>
 

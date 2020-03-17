@@ -1,134 +1,117 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Marsexplorer.Resources
 {
     public class Map
     {
-        public Map()
+        public List<Axis> Axes;
+        int xndx = 0;
+        Coordinates p1;
+        public Map(int x, int y)
         {
-
-        }
-        public int AreaExplored
-        {
-            get
-            {
-                int cnt = 0;
-                axes.ForEach(s =>
-                {
-                    s.Blocks.ForEach(b =>
-                    {
-                        cnt += (b.Height + 1);
-                    });
-                });
-                return cnt;
-            }
+            //initialize
+            Axes = new List<Axis>();
+            p1 = new Coordinates() { x = x, y = y };
+            var ver = new Axis() { X = x };
+            ver.Ranges.Add(new Range() { Min = y, Max = y });
+            Axes.Add(ver);
         }
 
-        public List<Axis> axes;
-
-        public Axis laxis;
-
-        public void Load(Coordinates current, Move movement)
+        public Coordinates Read(Move move)
         {
-            Coordinates newcoordinates = new Coordinates();
-            switch (movement.direction)
+            Coordinates ncpos = new Coordinates();
+            switch (move.direction)
             {
-                case Robot.Direction.East:
-                    EastWest(current, movement, (int x) => { return x + 1; }, Robot.Direction.East);
-                    break;
-                case Robot.Direction.West:
-                    EastWest(current, movement, (int x) => { return x - 1; }, Robot.Direction.West);
-                    break;
                 case Robot.Direction.North:
                     {
-                        //check if already in the block
-                        ResolveBlock(laxis, current.y, movement.steps);
-                        current.y = current.y + movement.steps;
+                        ncpos.x = p1.x;
+                        ncpos.y = p1.y + move.steps;
+                    }
+                    break;
+                case Robot.Direction.East:
+                    {
+                        ncpos.y = p1.y;
+                        ncpos.x = p1.x + move.steps;
+                    }
+                    break;
+                case Robot.Direction.West:
+                    {
+                        ncpos.y = p1.y;
+                        ncpos.x = p1.x - move.steps;
                     }
                     break;
                 case Robot.Direction.South:
                     {
-                        //check if already in the block
-                        ResolveBlock(laxis, current.y - movement.steps, movement.steps);
-                        current.y = current.y - movement.steps;
+                        ncpos.x = p1.x;
+                        ncpos.y = p1.y - move.steps;
                     }
                     break;
             }
+            AddCoordinate(ncpos);
+            return ncpos;
         }
 
-        public delegate int GetRangeCallBack(int y, int steps);
-
-        public delegate int GetAxisCallBack(int currentx);
-
-        public void EastWest(Coordinates current, Move movement, GetAxisCallBack getaxis, Robot.Direction dir)
+        public int Explored()
         {
-            //check if next axis exists
-            for (int i = 0; i < movement.steps; i++)
-            {
-                //check if next axis exists
-                var nextaxis = axes.SingleOrDefault(s => s.axis == (getaxis(current.x)));
-                if (nextaxis == null)
-                {
-                    //new block
-                    nextaxis = new Axis() { axis = (getaxis(current.x)), Blocks = new List<Block>() { new Block() { Min = current.y, Height = 0 } } };
-                    //ordered
-                    if (axes[axes.Count - 1].axis < nextaxis.axis)
-                        axes.Add(nextaxis);
-                    else
-                        axes.Insert(0, nextaxis);
-                }
-                else
-                {
-                    //create block in the existing axis if not defined
-                    ResolveBlock(nextaxis, current.y, 0);
-                }
-                laxis = nextaxis;
-                current.x = getaxis(current.x);
-            }
+            return this.Axes.Select(s => s.Ranges.Explored()).Sum();
         }
 
-        public void ResolveBlock(Axis nextaxis, int ycur, int height)
+        public void AddCoordinate(Coordinates p2)
         {
-            var minblock = nextaxis.Blocks.FirstOrDefault(s => s.InRange(ycur));
-            var maxblock = nextaxis.Blocks.FirstOrDefault(s => s.InRange(ycur + height));
-
-            //not bound in any block
-            if (minblock == null && maxblock == null)
+            //move in x axis
+            if (p1.y == p2.y)
             {
-                var nblock = new Block() { Min = ycur, Height = height };
+                if (p1.x < p2.x) //East
+                {
+                    for (int i = p1.x + 1; i <= p2.x; i++)
+                    {
+                        if (xndx == (Axes.Count - 1))
+                        {
+                            var naxis = new Axis() { X = i };
+                            naxis.Store(p1.y, p2.y);
+                            Axes.Add(naxis);
+                        }
+                        else
+                        {
+                            Axes[xndx + 1].Store(p1.y, p2.y);
+                        }
+                        xndx++;
+                    }
+                    this.p1 = new Coordinates() { x = p2.x, y = p2.y };
+                    return;
+                }
 
-                if (nextaxis.Blocks[nextaxis.Blocks.Count - 1].Min < nblock.Min)
-                    nextaxis.Blocks.Add(nblock);
-                else
-                    nextaxis.Blocks.Insert(0, nblock);
-                return;
+                if (p1.x > p2.x)//West
+                {
+                    for (int i = p1.x - 1; i >= p2.x; i--)
+                    {
+                        if (xndx == 0)
+                        {
+                            var naxis = new Axis() { X = i };
+                            naxis.Store(p1.y, p2.y);
+                            Axes.Insert(0, naxis);
+                            continue;
+                        }
+                        else
+                        {
+                            Axes[xndx - 1].Store(p1.y, p2.y);
+                        }
+                        xndx--;
+                    }
+                    this.p1 = new Coordinates() { x = p2.x, y = p2.y };
+                    return;
+                }
             }
 
-            //increase the height of existing
-            if (minblock != null && maxblock == null)
+            //move in y axis
+            if (p1.x == p2.x)
             {
-                minblock.Height = (ycur + height) - minblock.Min;
+                Axes[xndx].Store(p1.y, p2.y);
+                this.p1 = new Coordinates() { x = p2.x, y = p2.y };
                 return;
             }
-
-            //decrease the bounds
-            if (minblock == null && maxblock != null)
-            {
-                maxblock.Min = ycur;
-                maxblock.Height = maxblock.Height + height;
-                return;
-            }
-
-            //merge
-            if (minblock != maxblock)
-            {
-                //increased the height
-                minblock.Height = (maxblock.Min + maxblock.Height) - minblock.Min;
-                return;
-            }
-
-            //just moving sideways
         }
     }
 }

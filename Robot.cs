@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Marsexplorer.Resources;
 
@@ -9,17 +7,12 @@ namespace Marsexplorer
 {
     public class Robot
     {
-        readonly Map map;
-        Coordinates ipos;
-        Coordinates cpos;
-        public Coordinates Current => cpos;
-        public Coordinates Initial => ipos;
-
-        public int ExploredAreaCount => map.AreaExplored;
+        Map map;
+        public int ExploredAreaCount => map.Explored();
 
         public Robot()
         {
-            map = new Map();
+
         }
 
         public enum Direction
@@ -51,13 +44,8 @@ namespace Marsexplorer
         {
             var movecount = Convert.ToInt32(instruction[0]);
             var strpos = instruction[1].Split(' ');
-
-            ipos = new Coordinates() { x = Convert.ToInt32(strpos[0]), y = Convert.ToInt32(strpos[1]) };
-            cpos = new Coordinates() { x = ipos.x, y = ipos.y };
-
-            map.axes = new List<Axis>() { new Axis() { axis = cpos.x, Blocks = new List<Block>() { new Block() { Min = cpos.y, Height = 0 } } } };
-            map.laxis = map.axes.First();
-
+            //initialize map
+            map = new Map(Convert.ToInt32(strpos[0]), Convert.ToInt32(strpos[1]));
             for (int i = 0; i < movecount; i++)
             {
                 var strmove = instruction[2 + i].Split(' ');
@@ -77,9 +65,9 @@ namespace Marsexplorer
                         movement.direction = Robot.Direction.South;
                         break;
                 }
-                map.Load(cpos, movement);
+                map.Read(movement);
             }
-            return map.AreaExplored;
+            return map.Explored();
         }
     }
 }
